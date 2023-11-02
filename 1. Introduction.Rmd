@@ -1,0 +1,349 @@
+# Introducción a la visualización de datos.
+
+Explorar los datos de manera visual es muy importante, pues encontraremos información que, de otra manera, no podríamos reconocer. Por ejemplo, en el dataset de murders:
+
+```{r}
+library(dslabs)
+data(murders)
+a <- head(murders)
+a
+```
+
+Si miramos la tabla anterior, es difícil responder preguntas como: - ¿cuál estado tiene más población? - ¿cuál estado tiene menos? - ¿cuál es el tamaño más frecuente entre los estados? - ¿ De qué forma varían los crímenes a lo largo de las regiones?
+
+Es dificil para el cerebro extraer esta información de las tablas, pero esta información si está más disponible a través de los gráficos.
+
+"Una imagen vale más que mil palabras"
+
+La visualización de datos es tan importante, que a menudo solo basta con ello. Además, muchas industrias se están avocando a la presentación visual de los datos. Hay información que quizá no podemas reconocer, si no es por la exploración visual de los datos.
+
+También es cierto que malas prácticas de visualización pueden dar lugar a sesgos y malas interpretaciones.
+
+## Introducción a las distribuciones:
+
+A menudo resumimos nuestros datos con la media y la desviación estándar. La visualización de la distribución (el resumen estadístico más básico de una variable) permite decidir si estas medidas son buenas medidas de resumen.
+
+### Tipos de datos.
+
+Para comprender las distribuciones es necesario tener en cuenta la diferencia en los tipos de datos: categóricos y numéricos, y la división de estos tipos en nominales, ordinales, discretos y continuos. Es necesario tener en cuenta que cuando las variables numéricas discretas tienen muy pocos valores y gran cantidad de sujetos pertenecientes a cada valor, se suelen considerar como ordinales.
+
+## explicándole las alturas de los alumnos a ET.
+
+Vamos a enviarle datos a ET sobre las alturas de los alumnos del salón. Podríamos enviarle el dataset que recojamos con este y otros datos, pero ¿es eso suficientemente explicativo?. Es mucho mejor enviarlo con un análisis exploratorio inicial.
+
+```{r}
+data("heights")
+head(heights)
+```
+
+Tenemos, en el data set, hombres y mujeres con su respectiva altura en pulgadas. Así que analicémoslo gráficamente para enviar esta información a ET, quien nunca ha visto a los humanos.
+
+### la distribución:
+
+La distribución es simplemente una manera compacta de describir una lista con muchos elementos.
+
+#### Distribución para los datos categóricos:
+
+para datos categóricos la distribución es simplemente la descripción de las proporciones para cada categoría: En términos numéricos, sería esto:
+
+```{r}
+prop.table(table(heights$sex))
+```
+
+Aquí no hay mucho más que visualizar, puesto que los dos números hacen el trabajo. Pero igual, si se quiere hacer, se puede graficar:
+
+```{r}
+barplot(table(heights$sex))
+
+```
+
+Cuando hay más de una categoría, la distribución por medio de gráficos de barra está más justificada:
+
+```{r}
+barplot(prop.table(table(murders$region)))
+```
+
+Aquí se observa que hay más estados en la región sur (33%), casi el doble que en la región noreste.
+
+Es cierto que este gráfico no ofrece más información que la que hay en la tabla de abajo, pero igual es una buen acercamiento a la representación de la variable.
+
+```{r}
+prop.table(table(murders$region))
+```
+
+#### distribución para los datos numéricos.
+
+Con los datos numéricos el trabajo es un poco más complicado, debido a que hay muchos valores y cada uno podría presentarse tan sólo una vez. por ejemplo:
+
+```{r}
+barplot(heights$height)
+```
+
+La gráfica de barras ya no nos está diciendo mucho.
+
+Una posible manera es definir una función matemática que reporte la proporción de datos menores a "A", que estén por debajo de "A". A esto se le llama **la función de distribución acumulativa,** la cual se puede graficar como función. Esta función está definida así:
+
+`f(a) = pr(x<=a)`
+
+En este sentido, la a será igual a la probabilidad de que hayan valores por debajo de este. En una distribución de (1,2,3,4), la función se definie como
+
+x = pr(x\<=4)
+
+x = 100
+
+x = pr(x \<= 3)
+
+x = 3/4
+
+x=0.75
+
+Todos estos x se grafican en un gráfico de la función de la distribución acumulativa:
+
+```{r}
+x <- ecdf(c(1,2,3,4))
+plot(x)
+```
+
+Lo mismo se podría hacer con las alturas:
+
+```{r}
+plot(ecdf(heights$height))
+```
+Este plot no está mostrando en el eje X el valor de la altura, y en el eje y, la probabilidad de que hayan valores iguales o menores a ese x. Por ejemplo, el 60% de los estudiantes tienen alturlas menore o iguales a 70 pulgadas. 
+
+Como se usa una fórmula matemática para graficarlo, se le llama ¨función empírica de distribución acumulativa¨ o ecdf. 
+
+En la práctica no es muy utilizado (pese a su precisión), debido a que no presenta algunas características de la distribución que son importantes, tales como el valor del centro de la distribución, la simetría, o los datos que constituyen el 95% de la distribución. Se puede descifrar, pero no es tan claro. 
+
+Para abordar esto, se usan los histogramas, y por eso son más populares. 
+
+Los histogramas sacrifican un poco de información, pero da otra mucho más importante. Para eso, divide el valor de los datos en partes iguales (bin), representados por "barras", y luego cuenta cada valor que cae dentro de ese bin: 
+```{r}
+hist(heights$height, breaks = max(heights$height)-min(heights$height) )
+```
+
+Con esto tenemos más información. Por ejemplo, que las alturas están entre 50 y 81 pulgadas. También que la mayoría de datos se agrupan entre 63 y 74 pulgadas. y que muchos de los datos se agrupan en el centro, con 69 pulgadas. 
+
+La información que se pierde es que cada bin es tratado de la misma manera, y podría ser que hay más datos con 63.3 que con 63.4, pero esta información es negligible. 
+
+#### Gráficos de densidad suavizada (smooth density plots)
+
+Son similares a los histogramas, pero estéticamente son más llamativos. 
+
+Un gráfico de densidad suvizada luce así: 
+```{r}
+library(ggplot2)
+ggplot(heights, aes(height))+
+  geom_density(alpha=0.1, fill = "blue", colour = "darkblue")
+
+```
+
+
+
+
+Se puede ver que ya no se notan los bordes afilados y que muchos de los picos han sido eliminados. También se puede ver que el eje y ahora se llama densidad y no frecuencia. Para comprenderlo mejor, se deben comprender las estimaciones, lo cual se verá más adelante (variables aleatorias). 
+
+Aparecen suavizados porque se está asumiendo que se obtienen los datos de una muestra hipotéticamente infinita, lo cual hace que se vea una línea continua. 
+
+Para dibujar la línea suavizada, primero se señalan los picos con puntos, y luego se dibuja una línea que una todos los puntos. 
+```{r}
+
+library(ggplot2)
+ggplot(heights, aes(height))+
+  geom_density()
+
+```
+
+
+El nivel de suavización se puede configurar de diferentes maneras, y, por lo tanto, es necesario tener cuidado con esa decisión. Se debe buscar que este coincida con los datos. 
+
+La interpretación no es tan directa como en el histograma, pues el área debajo de la curva representa 1, por lo que el área que ocupa un conjunto de valores es la proporción con respecto a ese 1. 
+
+## La distribución normal 
+
+A menudo, los datos se resumen con la media y la desviación estándar. Eso se debe a que la fórmula para calcular la distribución normal sólo requiere estos dos parámetros: la media y la desviación estándar. 
+La media es la suma de todos los datos de una variable, dividida por la cantidad de estos. 
+La desviación estándar es la raiz cuadrad del promedio de las diferencias entre la media y cada dato elevadas al cuadrado. Se puede interpretar como la distancia promedio entre la media y cada dato. 
+
+La media de alturas para los hombres es la siguiente: 
+```{r}
+mean(heights$height[heights$sex=="Male"])
+sd(heights$height[heights$sex=="Male"])
+```
+
+En la curva normal, las unidades estándar (Z), son el número de desviaciones estándar que cada dato se aleja de la media. Así, se puede calcular: (dato - media)/desviación estándar. Para el dataframe de alturas sería así: 
+```{r}
+heights$pz <- (heights$height-mean(heights$height))/sd(heights$height)
+heights
+```
+Estas puntuaciones z son muy importantes para identificar rápidamente si una persona está por encima o por debajo de la media y para comparar entre distribuciones. 
+
+En r, se puede usar la función escale para convertir rápidamente una puntuación bruta a puntuaciones z: 
+```{r}
+heights$pz2<- scale(heights$height)
+heights
+```
+
+Si la distribución es normal, sabemos que el 95% de los datos está entre -z y + z. por ejemplos: 
+
+```{r}
+mean(abs(heights$pz)<2)
+```
+
+### La distribución acumulativa normal y pnorm
+
+Siendo una distribución normal, sólo necesitamos aplicar la función de distribución normal para encontrar la probabilidad asociada a un valor específico. Y para aplicar la función, necesitamos la media y la desviación estándar. 
+Por ejemplo, dada una media de 100 y una ds de 15, ¿Cuál es la probabilidad de que yo tenga un CI de 115 o superior?
+para eso usamos la función pnorm(), que nos pide el dato, la media y la ds. 
+
+```{r}
+print(pnorm(115, 100, 15))
+print(1 - pnorm(115, 100, 15))
+```
+hay 85% de probabilidades de que pueda tener esa inteligencia o menos y 15% de que pueda tener esa inteligencia o más. En otras palabras, el 0.84 habla de los datos que hay iguales o por debajo de ese valor. LA DISTRIBUCIÓN NORMAL ACUMULATIVA.
+
+Ahora bien, la manera más apropiada de usar esta función es identificar la probabilidad de intervalos. Por ejemplo ¿Cuál es la probabilidad de que yo tenga una inteligencia de entre 110 y 115: 
+```{r}
+pnorm(115, 100, 15) - pnorm(110, 100, 15)
+```
+
+la probabilidad es de 9 %. Eso se debe a que al área bajo la curva de 115, se le resta la de 110, y por lo tanto, queda ese 9%
+
+#### Discretización
+Es necesario tener en cuenta que, mientras los datos recogidos tienden a ser discretos, por cuestiones de redondeo, los datos asociados a las variables aleatorias son infinitamente continuos; por lo tanto, cuando comparamos la probabilidad de datos continuos, con la de la variable aleatoria, tendremos resultados diferentes. La solución a esto es intentar calcular probabilidades de datos lo más discretos posible. 
+
+## Cuantiles, percentiles y boxplots. 
+Loantiles son puntos que dividen, por intervalos, a una variable. 
+el cuantil 25 está asociado a un valor. Dicho valor es aquel que tiene la probabilidad de que él o uno menor se encuentre en la variable. Por ejemplo, si digo que ina inteligencia de 80 está en el percentil 70, digo que hay un 70 % de probabilidades de encontrar una inteligencia igual o menor que 80. 
+
+para calcularlos en R, debemos especificar, en la función quantile, la data y los cuantiles que queremos. Por ejemplo, para cuartiles: 
+
+```{r}
+quantile(heights$height, c(0.25, 0.5, 0.75))
+```
+para quintiles: 
+
+```{r}
+quantile(heights$height, c(0.2, 0.4, 0.6, 0.8))
+```
+
+para percentiles: 
+qu
+```{r}
+quantile(heights$height, seq(0.01, 0.99, 0.01))
+```
+En la sección anterior vimos la función pnorm, la cual arroja el cuantil, desde una distribución normal, asociado a un dato, una media y un sd. 
+
+la función opuesta es qnorm(), la cual nos da el valor para un cuantil específico. Por ejemplo, si quiero saber qué valor está en el percentil 70, dada una media de 69 y una ds de 3, uso la función así: 
+```{r}
+qnorm(0.7, 69, 3)
+```
+
+La respuesta es que la altura de 70 pulgadas está en el cuantil 0.7. 
+
+También puedo obtener cada valor, asociado a cada percentil, con base en la media y la desviación estándar: 
+
+```{r}
+percentiles <- seq(0.01, 0.99, 0.01)
+percentiles_alturas <- qnorm(percentiles, 69,3)
+
+```
+
+### Gráficos de cuantiles. 
+Los gráficos de cuantiles funcionan con la siguiente lógica: Si los cuantiles de la data, coinciden con los cuantiles teóricos, entonces la distribución de los datos se ajustan a la distribución teórica. 
+Para la distribución normal en las alturas vamos a obtener los cuantiles observados y los teóricos: 
+```{r}
+percentiles <- seq(0.01, 0.99, 0.01)
+cuantiles_obs <- quantile(heights$height, percentiles)
+cuantiles_teo <- qnorm(percentiles, mean(heights$height), sd(heights$height)) 
+```
+
+para ver si los cuantiles coinciden, simplemente los grafico: 
+```{r}
+plot(cuantiles_obs, cuantiles_teo)
+abline(a=0, b=1)
+```
+
+La línea diagonal es una línea de identidad, con intersección 0 y altura 1. Quiere decir que por donde pasa la lína son exactamente iguales los cuantiles teóricos y observados. Entre más cerca estén de la línea, más se acerca a la distribución normal. 
+
+Este código se puede simplificar si se usan puntuaciones z, pues estas ya tienen integrada la media y la desviación estándar. Se puede hacer de la siguiente manera: 
+```{r}
+plot(quantile(scale(heights$height), percentiles), qnorm(percentiles))
+abline(a=0, b=1)
+```
+
+Vamos ahora a identificar si los asesinatos se distribuyen de manera normal: 
+
+```{r}
+cuantiles_obs_asesinatos <- quantile(scale(murders$total), percentiles)
+cuantiles_teo_asesinatos <- qnorm(percentiles)
+plot(cuantiles_teo_asesinatos, cuantiles_obs_asesinatos)
+abline(a=0, b=1)
+```
+Con esto se comprueba que el total de asesinatos no sigue una distribución normal.
+Esto podría confirmarse con el histograma: 
+```{r}
+hist(murders$total)
+```
+
+
+### Gráficos de cajas. 
+
+Hemos visto que la media y la ds son medidas de resumen apropiadas para cuando la desviación es normal; también vimos que los asesinatos no se distribuyen de manera normal, por lo tanto, la media y la ds no son un resumen apropiado para los asesinatos. 
+La mejor alternativa, es ofrecer un resumen con cinco valores: el mínimo, el máximo y los tres cuartiles. También es recomendable ignorar los datos atípicos. Estos datos se pueden ofrecer en un gráfico de cajas y bigotes, así: 
+```{r}
+boxplot(murders$total)
+```
+En este gráfico, el borde superior de la caja es el cuartil 3 (75%), el borde inferior es el cuartil 1 (25%), y el rango está definido por el bigote. La mediana (cuartil 2) es la línea dentro de la caja. la distancia entre la parte superior e inferior de la caja es el rango intercuartil. Los puntos son los valores atípicos.
+
+Aquí vemos que el rango está entre poco más de 0 y algo más que 500. El cuartil 1 es alrededor de 30, el 3 es alrededor de 250, el valor superior es poco más de 500 sin contar los rangos intercuartiles. 
+
+Quizá es un poco más fácil si lo vemos en términos de la tasa de homicidios: 
+
+```{r}
+murders$tasa <- murders$total/murders$population*100000
+boxplot(murders$tasa)
+```
+En términos de la tasa, los valores extremos son dos, debido a que se computa con respecto a la población. 
+
+Los boxplot son aún más útiles cuando intentamos comparar dos o más distribuciones. En el caso de las alturas: 
+
+```{r}
+boxplot(height~sex, data=heights)
+```
+
+Aquí vemos que las mujeres tienen un rango menor, así como los cuartiles se presentan con valores menores en comparación con los hombres. 
+
+En el caso de los asesinatos: 
+
+```{r}
+boxplot(tasa~region, data = murders)
+```
+Vamos que en el occidente hay una tasa mediana más baja, pero en el nororiente, si bien la mediana es más alta, el ranto y el rango intercuartil son más ajustados, lo cual habla mejor de esta última región. 
+
+## Análisis exploratorio de los datos. 
+
+comparemos la distribución normal para hombres y mujeres en altura: 
+
+para hombres: 
+
+```{r}
+altura_hombres <- heights$height[heights$sex=="Male"]
+altura_mujeres <- heights$height[heights$sex == "Female"]
+cuantiles_altura_mujeres <- quantile(scale(altura_mujeres), percentiles)
+cuantiles_altura_hombres <- quantile(scale(altura_hombres), percentiles)
+plot(qnorm(percentiles), cuantiles_altura_hombres)
+abline(a=0, b=1)
+plot(qnorm(percentiles), cuantiles_altura_mujeres)
+abline(a=0, b=1)
+ggplot(as.data.frame(altura_hombres), aes(altura_hombres))+
+  geom_density(alpha=0.1, fill = "blue", colour = "darkblue")
+ggplot(as.data.frame(altura_mujeres), aes(altura_mujeres))+
+  geom_density(alpha=0.1, fill = "blue", colour = "darkblue")
+```
+
+Con esto vemos que las mueres tienen mayor dificultad con la distribución normal. Esto se debe a que presentan una especi de hombro en el gráfico de densidad acumulada y a que en el qqplot presentan alturas por encima de los esperado en los valores más extremos y por debamo de lo esperado a partir del z 0. 
+
+Estos datos también nos pueden ayudar a identificar otros asuntos (posibles sesgos) en nuestra data. En otros datos se identifica que la altura de las mujeres también se distribuye de manera normal. ¿Qué pudo pasar aquí?
+1. ¿Las mujeres que respondieron tendieron a ser más altas y más bajas?
+2. ¿La opción de respuesta por defaul era mujer y ya estaba marcada en el aplicativo, y algunos hombres olvidaron marcar el correcto?

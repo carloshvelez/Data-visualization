@@ -1,0 +1,1174 @@
+---
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+
+# Introducción a Ggplot2
+
+Hay muchas opciones para crear gráficos en R.
+ggplot2 es sólo una de ellas.
+También está la opción por defecto de R, Grid y Lattice.
+Ggplot es útil porque divide los gráficos en componentes, de tal forma que los principiantes pueden crear gráficos relativamente complejos y atractivos usando una sintaxis que es fácil de recordar.
+Una de las razones por las que es intuitivo, es que ggplot usa una gramática de gráficos.
+(de ahí el gg).
+**de la misma forma que aprender gramática le permite a un principiante crear cientos de frases aprendiendo sólo algunos verbos, sustantivos y adjetivos, sin tener que memorizar cada frase, aprender un conjunto de bloques de ggplot y su gramática, permite crear cientos de gráficos diferentes** El comportamiento por defecto de ggplot satisface la mayoría de los casos y es estéticamente agradable.
+Por lo tanto, es posible crear gráficos informativos y elegantes con un código simple y legible.
+
+Es necesario tener en cuenta que ggplot interpreta las columnas como variables y las files como casos.
+
+Para usar ggplot2, es necesarios memorizar los nombres de varias funciones y argumentos.
+Para facilitarlo, se puede usar la cheet sheet.
+
+Para cargar ggplot2, podemos cargar tidyverse completo:
+
+```{r}
+library(tidyverse)
+library(dslabs)
+data(murders)
+```
+
+## Los componentes de un gráfico.
+
+El primer paso para aprender ggplot2 es aprender a separar el gráfico en componentes.
+Los más importantes en ggplot son: - el componentes de datos.
+- el componentes geométrico.
+- el componentes de mapeo estético.
+. - El componente de escala.
+- el componentes de estilo.
+
+Los tres componentes principales son la data, la geometría y el mapeo estético.
+
+Entonces: - Datos.
+- Geometría.
+- Mapeo.
+- Escala.
+- Estilo.
+
+Los datos hacen referencia al dataframe que se usará para construir el gráfico.
+La geometría hace referencia al tipo de gráfico (el cual define el tipo de objetos geométricos), por ejemplo: barra, dispersión, histograma, qqplot, etc.
+El mapeo hace referencia a cómo se organizarán los datos a lo largo de los ejes, qué datos representarán el color, el tamaño, etc.
+Esto depende del tipo de geometría usada.
+La escala hace referencia a la escala en la que se presentarán los datos: directa, logística, etc.
+El estilo hace referencia al tema, las etiquetas, las leyendas, etc.
+
+## ASOCIANDO OBJETOS CON DATOS, GEOMETRÍAS Y MAPEO.
+
+### llamar el objeto ggplot.
+
+El primer es definir un objeto ggplot, para eso se usa la función ggplot(), la cual generalmente va seguida con un + para agregar componentes a este objeto.
+Para asociar la data con el objeto, escribimos la función y como argumento el nombre del dataframe:
+
+```{r}
+ggplot(murders)
+```
+
+Como se observa, allí está el espacio con el objeto, aunque aún no se le han pasado argumentos; es como crear la pizarra en blanco sobre la cual vamos a graficar.
+también se puede hacer pyp de la data, así:
+
+```{r}
+murders%>% ggplot()
+```
+
+podemos ver que es un objeto:
+
+```{r}
+class(ggplot(murders))
+```
+
+### Asignando capas.
+
+En ggplot se crean los gráficos agregando capas.
+Ya tenemos la pizarra, ahora vamos a agregarle capas.
+Las capas pueden: definir geometrías, calcular estadísticas de resumen, definir qué escalas usar, cambiar estilos.
+Para agregar capas, usaremos el símbolo + En general un código de ggplot luce así: ggplot()+capa 1+capa2+....+capaN.
+
+Usualmente, la primera capa que se asigna es la que define la geometría.
+
+#### asignando capa de geometría: diagrama de dispersión.
+
+Para crear esta geometría se usa geom_point() Para que geom_point sepa qué hacer, tendremos que ofrecerle datos en un mapeo.
+Para saber qué estética maneja el geom_point, podemos mirar la sección de estética de la ayuda.
+Allí nos damos cuenta que puede considerar: - x - y - alpha - color - fill - group - shape - size - stroke
+
+La función aes() conecta los datos con lo que vemos en el gráfico.
+Esta conexión se denomina mapeo estético.
+El resultado que devuelve esta función a menudo se usa como el argumento para la función geom.
+
+```{r}
+ggplot(data=murders)+
+  geom_point(aes(x=population/10^6, y = total))
+```
+
+En el gráfico anterior ya tenía la pizarra vacía.
+Aquí le agregué una capa a esa pizarra, en el que le agregué una capa geom_point.
+Nótese que el primer argumento de esa capa es la aes(), la cual hace referencia a la estética ya mencionada.
+
+en ggplot también se pueden agregar capas a objetos previamente creados.
+Por ejemplo, puedo crear un objeto llamado p convocando el gráfico, y luego agregarle la capa:
+
+```{r}
+p <- ggplot(data = murders)
+p+geom_point(aes(population/10^6, total))
+```
+
+Nótese que las escalas y las etiquetas están definidas por default cuando se crea este objeto.
+aes() reconoce los nombres de las variables como etiquetas.
+
+#### Agregando una capa para cada punto.
+
+Podemos continuar agregando capas y capas sobre este objeto.
+Lo siguiente que vamos a hacer es agregar una capa que asigne una etiqueta a cada punto, lo cual nos ayudará a identificar qué estado pertenece a cada punto.
+geom_label y geom_text permite hacer este trabajo.
+geom_label agrega texto dentro de un rectángulo, y geom_text sin el rectángulo.
+Como cada estado tiene una etiqueta, necesitamos agregar un mapeo estético para hacer esta conexión.
+
+```{r}
+ggplot(data = murders)+
+  geom_point(aes(population/10^6, total))+
+  geom_text(aes(population/10^6, total, label=abb))
+```
+
+nótese que para el geom_text, dentro del mapeo estético, primero tuvios que definir los puntos x,y, y luego le indicamos que la etiqueta (label) es igual a las abreviaturas en el dataframe.
+
+#### Retocando el gráfico
+
+Las funciones tienen muchos más argumentos que los que hemos venido usando, las cuales nos permiten modificar aspectos específicos del gráfico.
+Por ejemplo, en geom_point podemos cambiar el tamaño de los puntos:
+
+```{r}
+ggplot(data=murders)+
+  geom_point(aes(population/10^6, total), size=3)+
+  geom_text(aes(population/10^6, total, label = abb))
+
+```
+
+Por ejemplo, en el gráfico anterior le cambiamos el tamaño a los puntos en geom_point.
+Podríamos hacerlo también con el texto:
+
+```{r}
+ggplot(data=murders)+
+  geom_point(aes(population/10^6, total), size=2)+
+  geom_text(aes(population/10^6, total, label = abb), size = 6.5)
+```
+
+El problema es que no los puntos y las etiquetas coinciden, por lo que el gráfico queda sin ser usado.
+el argumento nudge_x permite mover el texto.
+
+```{r}
+ggplot(data=murders)+
+  geom_point(aes(population/10^6, total))+
+  geom_text(aes(population/10^6, total, label=abb), nudge_x = 1)
+```
+
+#### Definiendo estética global:
+
+Si no quiero repetir el aes () cada vez que convoque una capa, lo que puedo hacer es definirla de manera global desde el momento que convoco al ggplot.
+Así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=2.5)+
+  geom_text(nudge_x = 1.5)
+```
+
+Si quiero una estética particular que sobreescriba la global, simplemente convoco en la geometría correspondiente.
+Por ejemplo, voy a agregar un texto que diga "Esto es un gráfico interesante" en el punto x5, y 1200.
+Lo hacemos así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=2.5)+
+  geom_text(aes(5, 1200, label="Este es un gráfico interesante"))
+
+```
+
+También pudeo agregar ese texto al gráfico anterior, simplemente agregando otra capa:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=2.5)+
+  geom_text(nudge_x = 1.5)+
+  geom_text(aes(5, 1200, label = "Este es un gráfico interesante"))
+```
+
+#### Escalas, etiquetas y colores
+
+Podemos transformar nuestras variables a diferentes tipos de escalas.
+Por ejemplo, las funciones scale_x\_continuous y scale_y\_continuos nos permiten transformar nuestas variables continuas a escalas diferentes, como las logarítmicas.
+Las escalas logaritmicas las usamos cuando los datos representan una cantidad muy amplia de datos (como en el caso de las poblaciones o los asesinatos), con el fin de que sea más fácil interpretarlas.
+Así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=3)+
+  geom_text(nudge_x = 1.5)+
+  scale_x_continuous(trans="log10")+
+  scale_y_continuous(trans = "log10")
+
+  
+```
+
+Nótese que las etiquetas quedaron muy movidas, por lo que será necesario también cambiar la escala de las etiquetas, pero es más fácil simplemente escribirlo como una fracción de lo original:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label = abb))+
+  geom_point(size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_y_continuous(trans = "log10")+
+  scale_x_continuous(trans = "log10")
+
+```
+
+Como esta transformación es muy común, ggplot ofrece la posibilidad de hacerla de manera más rápida:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()
+```
+
+Ahora estamos listos para agregar títulos y etiquetas, esto se hace con las funciones xlab, ylab, gtittle.
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  xlab("Población en millones (escala logarítmica)")+
+  ylab("Número total de asesinatos (escala lgorítmica)")+
+  ggtitle("Asesinatos con arma de fuego en Estados Unidos en 2010")
+```
+
+Lo anterior también lo podemos resumir con la función labs así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label =abb))+
+  geom_point(size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")
+```
+
+Podemos cambiar los colores de los puntos usando el argumento col en la función geom_point.
+
+podríamos graficar todos los puntos del mismo color, así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(size=3, color="blue")+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")
+
+```
+
+Pero también podemos asignar un color a cada punto dependiendo de si pertenece o no a una variable catogórica, por ejemplo, según las regiones.
+Así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")
+```
+
+Nótese que fue necesario agregar un argumento aes que mapeara, en la data, las regiones, de lo contrario ggplot no lo habría reconocido.
+
+Ahora vamos a agregar una línea que represente el promedio en la tasa de asesinatos para el país intero.
+Esta línea estará definida así: y = tasa\*x.
+De tal manera que si llego a un estado que tenga una población de 10 millones, lo multiplicaré por la tasa globla de asesinatos, lo cual me dará la línea que se espera para el número total de asesinatos.
+En ese sentido, tendré que configurar el intersecto de la línea con un valor igual a la tasa nacional de asesinatos, y dejar que esta tenga una altura de 1 para eso usamos geom_abline().
+Nótese que abline ya tiene como comportamiento por defecto una intersecto de 0 y una altura de 1, por lo que lo único que tendré que hacer es cambiar el intersecto a la tasa nacional de asesinatos.
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6))
+```
+
+Nótese que el orden de las capas importa.
+Si quiero que la línea quede bajo todo, la pondré en primer lugar:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6))+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")
+  
+```
+
+también podemos cambiar el tipo de línea con el argumento lty, y el color con el argumento color.
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6), lty = 2, color = "darkgray")+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")
+```
+
+Ahora quiero cambiar el nombre de la leyenda color, da tal manera que esté ne mayúscula.
+para eso tendré que agregar otra capa, llamada scale_color_discrete().
+Así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6), lty = 2, color = "darkgray")+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")+
+  scale_color_discrete(name = "Color")
+
+```
+
+### add-ons y paquetes
+
+El poder de ggplot se aumenta gracias a la disponibilidad de paquetes adicionales add-ons.
+Los temas se pueden obtener cargando la librería ggthemes, y luego aplicándolos como una capa nueva.
+
+```{r}
+library(ggthemes)
+```
+
+voy a guardar el anterior gráfico con el fin de que sea más fácil de manejar:
+
+```{r}
+plot <- ggplot(murders, aes(population/10^6, total, label=abb))+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6), lty = 2, color = "darkgray")+
+  geom_point(aes(col = region), size=3)+
+  geom_text(nudge_x = 0.075)+
+  scale_x_log10()+
+  scale_y_log10()+
+  labs(title = "Asesinatos con arma de fuego en estados unidos en 2010", subtitle = "Gráfico creado en el curso de Harvard", x= "Población en millones(escala logarítmica)", y="Número total de asesinatos(escala logarítmica)")+
+  scale_color_discrete(name = "Color")
+```
+
+Ahora, puedo agregarle temas agregándolos como capas.
+por ejemplo:
+
+```{r}
+plot+theme_classic()
+```
+
+```{r}
+plot+theme_dark()
+```
+
+```{r}
+plot+theme_economist()
+
+```
+
+La característica final que le falta a este gráfico es que aún muchas etiquetas se superponen.
+Para arregarlo vamos a usar un paquete llamado ggrepel, que incluye una geometría que se asegura de que las etiquetas no se superpongan.
+
+```{r}
+
+library(ggrepel)
+```
+
+Para lograr usar ggrepel, vamos a reemplazar la geometría geom_text, con la geometría geom_text_repel, así:
+
+```{r}
+ggplot(murders, aes(population/10^6, total, label = abb))+
+  geom_abline(intercept=log10(sum(murders$total)/sum(murders$population)*10^6), lty=2, color = "Darkgray")+
+  geom_point(aes(col=region), size = 3)+
+  scale_x_log10()+
+  scale_y_log10()+
+  scale_color_discrete(name = "Color")+
+  geom_text_repel()+
+  theme_economist()
+
+```
+
+## Otros ejemplos.
+
+Vamos a aplicar esto a otros gráficos:
+
+### Histograma:
+
+```{r}
+data("heights")
+histograma <- heights %>% filter(sex=="Male")%>%ggplot(aes(x=height))
+  
+histograma+geom_histogram()
+```
+
+ahora vamos a agregar otras capas, empecemos por cambiar el número de bins:
+
+```{r}
+histograma+geom_histogram(binwidth=1)
+```
+
+Ahora agreguemos colores y etiquetas:
+
+```{r}
+histograma+geom_histogram(binwidth = 1, fill = "blue", col="black")+
+  labs(title = "Histograma para hombres", x= "Altura de hombres en pulgadas", y = "Frecuencias")
+
+```
+
+### Gráfico de densidad:
+
+```{r}
+densidad = histograma
+histograma+
+  geom_density(fill="blue")
+```
+
+### qqplot:
+
+para el qqplot necesitamos muestra.
+Luego vermos qué es una muestra.
+
+```{r}
+parámetros <- heights%>%filter(sex=="Male") %>% summarize(mean= mean(height), sd = sd(height))
+qq <- heights%>% filter(sex == "Male")%>% ggplot(aes(sample=height))
+qq+geom_qq(dparams = parámetros)+
+  
+  labs(x="Cuantiles teóricos", y="Valores observados", title="Diagrama de cuantiles para la altura en hombres")+
+  geom_abline()
+```
+
+O mejor, podemos escalar la data de la siguiente manera:
+
+```{r}
+qq <- heights%>%filter(sex=="Male")%>%ggplot(aes(sample=scale(height)))
+qq+geom_qq()+
+  geom_abline()
+```
+
+### haciendo múltiples plots:
+
+Una opción es usar la opción grid arrange del paquete gridExtra.
+
+```{r}
+
+library(gridExtra)
+```
+
+Para usar esto, lo que hacemos es guardar cada gráfico en un objeto, y luego organizarlos.
+
+```{r}
+grid.arrange(histograma+geom_histogram(),histograma+geom_histogram(),histograma+geom_histogram(), ncol=3)
+```
+
+## PRACTICANDO CON EJEMPLOS (GAPMINDER)
+
+Vamos a practicar con los datos de la fundación gapminder.
+Vamos a responder preguntas acerca de la economía del mundo y a reevaluar ciertos mitos.
+Para eso, cargamos el dataset gapminder
+
+```{r}
+data("gapminder")
+head(gapminder)
+```
+
+Tenemos nueve variables con 10545 observaciones: pais, año, mortalidad infantil, expectativa de vida, fertilidad, población, gdp, continente y región.
+
+### diferencias en mortalidad infantil entre diferentes países.
+
+Miremos cómo fue la mortalidad infantil en Sri Lanka y Colombia:
+
+```{r}
+gapminder%>%filter(year==2015 & country %in% c("Colombia", "Sri Lanka")) %>% select(country, infant_mortality, year)
+```
+
+Ahora voy a crear una gráfica para identificar la expectativa de vida en 1962, versus la fertilidad (este último en el eje x).
+
+```{r}
+gapminder %>% filter(year == 1962) %>% ggplot(aes(fertility, life_expectancy))+geom_point()
+```
+
+Para este año, los datos parecían pertenecer a dos categoria, uno con altas tasas de fernilidad ypoca expectativa de vida y otro con baja fertilidad y alta expectativa de vida.
+
+Verifiquemos a qué continentes pertenecen estos puntos:
+
+```{r}
+gapminder%>%filter(year==1962) %>% ggplot(aes(fertility, life_expectancy, color = continent))+geom_point()
+```
+
+Se puede observar que los paises europeos consistentemente tienen el comportamiento de menor fertilidad y mayor expectativa de vida, las américas tienen un patrón más inespecífico, mientras áfrica y asia tienden a agruparse consistentemente en el escenario más negativo.
+
+¿Es este el caso décadas después?
+
+### facetas en los gráficos.
+
+Podríamos hacer dos gráficos diferentes, pero ggplot permite ubicar uno al lado del otro presentando varias "facetas" de los datos.
+Para esto, usamos facet_grid() como una capa.
+Esta función permite estratificar hasta dos variables, usando columnas para una variable y filas para la otra, así facet_grid(continent\~year), los continentes representarán las filas y el año las columnas.
+
+```{r}
+gapminder%>%filter(year == 1962 | year ==2012)%>%ggplot(aes(fertility, life_expectancy, color = continent))+geom_point()+facet_grid(continent~year)
+```
+
+Sin embargo, aquí solo queremos separar por años, así que le decimos a la función facet que sólo lo haga por año utilizando un punto en el lugar de las filas, así.
+
+```{r}
+gapminder%>%filter(year == 1962 | year ==2012)%>%
+  ggplot(aes(fertility, life_expectancy, color =continent))+
+  geom_point()+
+  facet_grid(.~year)
+
+```
+
+En el gráfico se muestra claramente que cuarenta años después, la situación ha cambiado de tal forma que el todos los países han tendido hacia la esquina superior izquierda, en la que hay menor fertilidad y mayor expectativa de vida.
+
+Ahora supongamos que queremos hacer esto para varios años:
+
+```{r}
+años <- c(1964, 1969, 1974, 1979, 1984, 1989, 1994, 1999, 2004, 2009, 2014)
+gapminder %>% filter(year %in% años) %>% ggplot(aes(fertility, life_expectancy, color = continent))+
+  geom_point()+
+  facet_grid(.~year)
+```
+
+como se ve, el gráfico queda poco visible, para mejorarlo, usamos facet wrap:
+
+```{r}
+gapminder%>%filter(year %in% años) %>%
+  ggplot(aes(fertility, life_expectancy, color=continent))+
+  geom_point()+
+  facet_wrap(.~year)
+```
+
+### gráficos de series de tiempo:
+
+Los gráficos de series de tiempo dibujan una variable en el eje x y el tiempo en el eje y.
+algo que se le acerca es esto:
+
+```{r}
+gapminder %>% filter (country=="Colombia")%>% ggplot(aes(year, fertility))+
+  geom_point()
+  
+```
+
+Cuando tenemos puntos que se distribuyen uniformemente y puntos densamente poblados como es el caso, usamos líneas en vez de puntos, para eso, usamos geom_line()
+
+```{r}
+gapminder%>%filter(country =="Colombia")%>%
+  ggplot(aes(year, gdp))+
+  geom_line()
+```
+
+Podemos comparar varias variables, gracias al mapeo de grupos
+
+```{r}
+paises <- c("Colombia", "Venezuela", "Ecuador")
+gapminder%>%filter(country %in% paises)%>% 
+  ggplot(aes(year, gdp, group=country))+
+  geom_line()
+```
+
+En este momento no podemos identificar qué linea corresponde a cada pais.
+Para hacer esto, usamos la agrupación por colores:
+
+```{r}
+gapminder%>%filter(country %in% paises)%>% 
+  ggplot(aes(year, fertility,  color=country))+
+  geom_line()
+```
+
+para gráficos de series de tiempo se recomienda usar etiquetas en vez de leyendas.
+Para lograrlo, vamos a crear una dataframe con la ubicación de cada etiqueta, luego las ubicamos como nueva capa y finalmente quitamos la leyenda:
+
+```{r}
+etiquetas <- data.frame(country = c("Colombia", "Ecuador", "Venezuela"), x= c(1967, 2000, 1967), y= c(6.8, 3.5, 5.3))
+
+gapminder%>%filter(country %in% paises)%>% 
+  ggplot(aes(year, fertility, color=country))+
+  geom_line()+
+  geom_label(data = etiquetas, aes(x, y, label=paises))+
+  theme(legend.position="none")
+```
+
+### transformaciones.
+
+Las transformaciones son muy útiles para entender gráficos, especialmente cuando la escala de las variables es muy remota entre sujetos.
+Empecemos con el producto interno bruto gdp.
+Para hacerlo más interpretable, vamos a convertirlo en dolar al día per cápita.
+
+```{r}
+gapminder <- gapminder%>% mutate(dollars_per_day = gdp/population/365)
+```
+
+El gdp ya está ajustado a la inflación, así que se puede comparar entre años.
+Los dólares al dia per cápita es una medida para todo el país, por lo que es necesario tener en cuenta que hay mucha variabilidad entre el mismo pais.
+
+Miremos la distribución de dólares para el año 1970:
+
+```{r}
+gapminder%>%filter(year==1970)%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="grey")
+
+```
+
+En la mayoría de países, el promedio está por debajo de los 10 dólares al día.
+Sin embargo, vemos que el eje está dedicado, en su mayoría, a los paises que ganan más de diez dólares.
+Puede ser informativo mirar cuántos países hacen en promedio 1, 2, 4, 8, 16, 32, 64 (extremadamente pobre, muy pobre, pobre, promedio, acomodado, rico, muy rico).
+Esta escala es multiplicativa, y aquí es donde son útiles las gransformaciones logarítmicas.
+####Transformaciones logarítmicas: Las transformaciones logarítmicas transforman los cambios multiplicativos en aditivos.
+Por ejemplo, si se usa una base log 2, lo que se hace es considerar a cuál número habría que elevar el dos, para que, como resultado, de el valor de la variable.
+
+```{r}
+gapminder %>% filter(year==1970 & !is.na(gdp))%>%
+  ggplot(aes(log2(dollars_per_day)))+
+  geom_histogram(binwidth = 1, color="black")
+```
+
+Aunque la moda es el valor con mayor frecuencia, cuando tenemos una distribución de este tipo la llamamos multimodal, y otro pico, aunque mas bajo, se considera otra moda.
+Se les llama **modas locales**
+
+Este gráfico es consistente con la visión de un mundo desarrollado en el que hay gente que gana bien y un mundo menos desarrollado que no, para el 2011, el panorama era este:
+
+```{r}
+gapminder %>% filter(year==2011 & !is.na(gdp))%>%
+  ggplot(aes(log2(dollars_per_day)))+
+  geom_histogram(binwidth = 1, color="black")
+```
+
+No se recomienda usar la transformación logarítmica para el análisis exploratorio de los datos, pero a la hora de reportarlo es mucho más claro.
+La elección de 2 o 10 o cualquier base se hace con base en la información que arroja.
+Si se hubiese elegido una base de 10, la extensión del eje x habría sido muy limitada, lo cual hace muy difícil el análisis.
+
+Para la población sí es más útil el logaritmo con base 10, pues aquí los datos son mejor interpretables.
+
+```{r}
+gapminder %>% filter(year==1970 & !is.na(gdp))%>%
+  ggplot(aes(log10(population)))+
+  geom_histogram(binwidth = 1, color="black")
+```
+
+Nótese que hay dos manera de transformar al logaritmo, haciéndolo sobre los datos, lo cual acabamos de hacer, o incluyéndolo como una capa con scale_x\_continuos en el ggplot.
+Ambas formas tienen resultados diferentes con sus respectivas ventajas.
+La mayor ventaja de hacer la transformación en la capa, es que vemos los valores "reales" en el eje x, no los valores transformados como aparecían arriba:
+
+```{r}
+gapminder %>% filter(year==2011 & !is.na(gdp))%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")
+```
+
+comparemos:
+
+```{r}
+gapminder %>% filter(year %in% c(1970, 2011)& !is.na(gdp) )%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")+
+  facet_grid(.~year)
+
+```
+
+###usando boxplots las distribuciones por regiones son muchísimas, por lo que podrías intentar estratificarlas de la siguiente manera:
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")+
+  facet_wrap(.~region)
+```
+
+No obstante, también podemos hacerlo, de manera más clara, con un boxplot.
+En este símplemente configuramos en el eje x el mapeo estético y en el eje y la variable que queremos.
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%
+  ggplot(aes(region, dollars_per_day))+
+  geom_boxplot()
+```
+
+Con esto podemos hacer análisis importantes sobre la distribución del ingreso por cada región.
+Sin embargo, la forma horizontal en la que están ubicadas las etiquestas no nos permite hacer una lectura, por lo tanto rotamos las etiquetas en el tema:
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%
+  ggplot(aes(region, dollars_per_day))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+Otro de los problemas que tiene este gráfico es que los diagramas están organizados de forma alfabética, lo cual es arbitrario en términos de los datos.
+Es necesario buscar una manera más significativa de organizarlos.
+Vamos a hacerlo con la función reorder() que permite reordenar de acuerdo con factores.
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Ahora lo tenemos mejor organizado.
+Ahora vamos a colorearlo de acuerdo con el continente al que pertenecen:
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day, fill=continent))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+```
+
+Ahora, con el fin de hacer más visibles las regiones con bajas cifras, vamos a transformar el eje y en escala logarítmica:
+
+```{r}
+gapminder %>% filter(year %in% c(2011)& !is.na(gdp) )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day, fill=continent))+
+  geom_boxplot()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  scale_y_continuous(trans="log2")
+```
+
+Con esto ya podemos ver las diferencias entre las diferentes regiones que marcaban bajo.
+
+Para este gráfico incluso se pueden agregar los puntos, pues es más informativo y no involucra mucho peso, puesto que los puntos son pocos, para eso simplemente agregamos una geometría con los puntos:
+
+```{r}
+gapminder %>% filter(year %in% c(1972)& !is.na(gdp) )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day, fill=continent))+
+  geom_boxplot()+
+  geom_point(size = 0.7)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  scale_y_continuous(trans="log2")
+```
+
+la mayoría de paises ricos se enconran en Europa, Europa occidental y américa del norte, mentras los más pobres se encuentran en áfrica occidental y oriental.
+
+### comparando distribuciones.
+
+Ahora, vamos a comparar distribuciones.
+vamos a llamar a un grupo west, y al resto, developing.
+
+```{r}
+west <- c("Western Europe", "Northern Europe", "Southern Europe", "Northern America", "Australia and New Zealanda")
+gapminder%>%filter(year==1972 & !is.na(gdp)) %>% mutate (group = ifelse(region %in% west, "West", "Developing"))%>% 
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")+
+  facet_grid(.~group)
+```
+
+En el occidente, hay una simitría a la derecha, contrario a los países desarrollados, lo cual demuestra que para 1972 esta diferencia era muy notable.
+Ahora veamos que ocurre en el 2011.
+
+```{r}
+west <- c("Western Europe", "Northern Europe", "Southern Europe", "Northern America", "Australia and New Zealanda")
+gapminder%>%filter(year%in%c(1972,2011) & !is.na(gdp)) %>% mutate (group = ifelse(region %in% west, "West", "Developing"))%>% 
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")+
+  facet_grid(year~group)
+```
+
+Se puede ver que, si bien aun se presentan importantes diferencias, el mundo en desarrollo ha venido moviéndose u poco a la derecha.
+
+Ahora vamos a elegir sólo a los países que tengan datos para ambos años:
+
+```{r}
+country_list_1 <- gapminder%>%filter(year==1972 & !is.na(dollars_per_day))%>%.$country
+country_list_2 <- gapminder%>%filter(year==2010 & !is.na(dollars_per_day))%>%.$country
+country_list <- intersect(country_list_1, country_list_2)
+nrow(country_list)
+```
+
+Ahora vamos a hacer el cálculo con los paises que están en esta lista:
+
+```{r}
+gapminder%>%filter(year%in%c(1972,2011) & country %in% country_list) %>% mutate (group = ifelse(region %in% west, "West", "Developing"))%>% 
+  ggplot(aes(dollars_per_day))+
+  geom_histogram(binwidth = 1, color="black")+
+  scale_x_continuous(trans = "log2")+
+  facet_grid(year~group)
+```
+
+Aunque los países ricos se han vuelto más ricos, aparentemente los paises en desarrollo han mejorado más.
+Vamos a comparar los boxplot:
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2010)& country %in% country_list )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day, fill=continent))+
+  geom_boxplot()+
+  geom_point(size = 0.7)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  scale_y_continuous(trans="log2")+
+  facet_grid(year~.)
+
+```
+
+Es más fácil comparar cuando los gráficos están uno al lado del otro, por lo que vamos a convocar otra poderosa función en ggplot para colorear o rellenar en gráfico de manera diferente, dependiendo del año.
+Para eso tendremos que convertir el año en un factor.
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2010)& country %in% country_list )%>%mutate(region = reorder(region, dollars_per_day, fun = median))%>%
+  ggplot(aes(region, dollars_per_day, fill=continent))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  scale_y_continuous(trans="log2")+
+  geom_boxplot(aes(region, dollars_per_day, fill = factor(year)))+
+  labs(caption = "Esta es una nota de prueba")
+  
+```
+
+### Gráficos de densidad:
+
+Miremos gráficos de densidad para la situación que venimos analizando:
+
+```{r}
+gapminder%>% filter(year %in% c(1972, 2011) & country %in% country_list)%>%
+  ggplot(aes(dollars_per_day))+
+  geom_density(data = gapminder[gapminder$year==1972 | gapminder$year==2011,], aes(group = year, fill = year, alpha = 0.6))+
+  scale_x_continuous(trans="log2")
+  #facet_wrap(year~.)
+
+```
+
+Parece que las dos modas han cambiado a lo largo del tiempo, de tal forma que, la moda local más pequeña redujo en diferencia con respecto a la moda local más grande, lo cual da cuenta de que más paises empezaron a tener mayor ingreso monetario.
+
+Ahora vamos a comparar por grupos de regiones y por añoa:
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>% mutate(group = ifelse(region %in% west, "West", "Developing"))%>%ggplot(aes(dollars_per_day, group= group, fill = group))+
+  geom_density(alpha = 0.5)+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+Si bien este gráfico hace su trabajo, es necesario tener en cuenta que hay una discrepancia en el tamaño de cada grupo.
+Mientras uno tiene 87 países (Developing), el otro sólo tiene 21 países.
+De esta forma, es necesario configurar el gráfico para que tenga en cuenta esta discrepancia.
+En el comportamiento por defecto, cada área representa 1, independientemente del tamaño del grupo, lo cual hace parecer que hay el mismo número de países en cada grupo.
+
+Para cambiar esto, necesitamos acceder a variables computadas desde la función geom_density, de tal forma que las áreas de las densidades sean proporcionales al tamaño del grupo.
+Para lograrlo, lo único que tenemos que hacer es multiplicar la densidad (el eje y), por el tamaño de cada grupo.
+en la ayuda de geom_density() encontramos eque es posble computar una variable de distintas formas, y que el argumento count multiplica la densidad por el número de puntos.
+**en ggplot podemos acceder a las variables computadas encerrándolas entre dos puntos, así ..variable_computada..**.
+en ese sentido, sólo debemos poner en nuestro mapeo estético la variable computada ..count..
+para el eje y:
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>% mutate(group = ifelse(region %in% west, "West", "Developing"))%>%ggplot(aes(dollars_per_day, ..count.., group= group, fill = group))+
+  geom_density(alpha = 0.5)+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+Ahora podemos ver que el grupo developing tiene más países, por lo que las áreas dan cuenta de la cantidad real de estos países.
+Si queremos que las áreas sean más suavizadas, podemos usar el argumento bw dentro de la geometría, así:
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>% mutate(group = ifelse(region %in% west, "West", "Developing"))%>%ggplot(aes(dollars_per_day, ..count.., group= group, fill = group))+
+  geom_density(alpha = 0.5, bw=0.7)+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+Esto nos da una mirada más transparente de lo que ha ocurrido en esos cuarenta años.
+
+Ahora vamos a definir grupos para estos gráficos, con eso podemos analizar situaciones particulares de estos países:
+
+Para hacer esto, vamos a usar la función case_when, la cual es útil para definir grupos.
+
+```{r}
+gapminder <- gapminder %>% mutate(group = case_when(
+  .$region %in% west ~ "West",
+  .$region %in% c("Eastern Asia", "South-Eastern Asia") ~ "East Asia",
+  .$region %in% c("Caribbean", "Central America", "South America") ~ "Latin America",
+  .$continent == "Africa" & .$region != "Northern Africa" ~ "Sub Saharan Africa", 
+  TRUE ~ "Others"
+))
+```
+
+Ahora vamos a cambiar el orden de los factores:
+
+```{r}
+gapminder <- gapminder%>% mutate(group = factor(group, levels = c("Others", "Latin America", "East Asia", "Sub Saharan Africa", "West")))
+```
+
+Cambiar este orden afectará la manera como se vea en el gráfico.
+Miremos cómo sería:
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>%
+  ggplot(aes(dollars_per_day, ..count.., group= group, fill = group))+
+  geom_density(alpha = 0.5, bw=0.7)+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+Este gráfico es difícil de leer, por lo que vamos a intentar apilarlos para hacerlos más claros.
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>%
+  ggplot(aes(dollars_per_day, ..count.., group= group, fill = group))+
+  geom_density(alpha = 0.3, bw=0.8, position = "stack")+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+Aquí podemos ver que Latino América, Asia Oriental y Otros pasaron marcadamente hacia la derecha.
+
+El orden de los grupos se realizó con el fin de que se graficara primeramente West y ver este patrón más claramente.
+
+Podemos también ponderar los gráficos de acuerdo con la ponderación de la población.
+
+```{r}
+gapminder %>% filter(year %in% c(1972, 2011) & country %in% country_list)%>%
+  ggplot(aes(dollars_per_day, ..count.., group= group, fill = group, weight = population/sum(population)*2))+
+  geom_density(alpha = 0.3, bw=0.8, position = "stack")+
+  scale_x_continuous(trans="log2")+
+  facet_wrap(year~.)
+```
+
+La mayoría de personas extremadamente pobres estában en África subsahariana.
+
+## La importancia de la variabilidad:
+
+Para ver la importancia de la variabilidad, vamos a revisar la transformación logit.
+Para esto vamos a comparar la tasa de supervivencia de niños y el ingreso promedio.
+para eso, vamos a definir más grupos:
+
+```{r}
+gapminder <- gapminder %>% mutate(groups = case_when(
+  .$region %in% west ~ "The West",
+  .$region %in% "Northern Africa" ~ "Northern Africa",
+  .$region %in% c("Eastern Asia", "South-Easthern Asia") ~ "East Asia",
+  .$region == "Southern Asia" ~ "Southern Asia", 
+  .$region %in% c("Central America", "South America", "Caribbean") ~ "Latin America",
+  .$continent == "Africa" & .$region != "Northern Africa" ~ "Sub -Saharan Africa",
+  .$region %in% c("Melanesia", "Micronesia", "Polynesia") ~ "Pacific Islands"
+  
+))
+```
+
+Ahora vamos a computar las tasas de supervivensia para cada región:
+
+```{r}
+surv_income <- gapminder%>%
+  filter(year %in% 1970 &!is.na(gdp) & !is.na(infant_mortality) & !is.na(groups))%>%
+  group_by(groups)%>%
+  summarize(income = sum(gdp)/sum(population)/365,
+                         infant_survival_rate = 1-sum(infant_mortality/1000*population)/sum(population))
+surv_income%>%arrange(infant_survival_rate)
+```
+
+```{r}
+surv_income%>% ggplot(aes(infant_survival_rate, income, label=groups))+
+  geom_label()
+```
+
+podemos hacer la transformación logit así: Nótese que el argumento limit permite cambiar el rango del eje.
+Los argumentos brakes permiten especificar en qué lugar van a estar ubicadas las etiquetas del eje.
+
+La transformación logística logit para una tasa proporcional de p es definida por f(p) = log(p/1-p)
+
+por ejemplo: para 0.8: f(0.8) = log(0.8/1-0.8)
+
+### odds
+
+odds es la cantidad que se loguea.
+Por ejemplo, la probabilidad de que un niño sobreviva es de 0.95, entonces, la cantidad de que un niño muera es de 0.05.
+En ese sentido, el odds sería 0.95/0.05, lo cual da como resultado 19.
+Esto representa cuántos niños más viven en relación con los que mueren, es decir, de todos los niños nacidos, es 19 veces más grande la cantidad que continúa con vida que los que mueren.
+
+La transformación logit hace a esta cantidad simétrica, de tal forma que si las tasas son las mismas, odds es 0.
+Esta escala es útil cuando queremos señalar diferencias muy cercanas a 0 o cercanas a 1.
+
+Para las tasas de supervivencia esto es importante porque los valores están muy cercanos a 1.
+
+```{r}
+surv_income%>% ggplot(aes(income, infant_survival_rate, label=groups, color=groups))+
+  scale_x_continuous(trans = "log2", limit = c(0.25, 150))+
+  scale_y_continuous(trans = "logit", limit = c(0.85, 0.99), breaks = c(0.85, 0.9, .95, .99, .995, .999))+
+  geom_label(size = 3, show.legend = FALSE)
+```
+
+Con base en este gráfico uno estaría tentado a decir que todas las tasas en áfrica subsahariana son más bajas que las de Asia del sur.
+Esto es basado en un promedio de toda la región y no necesariamente es así.
+A esto se le llama **falacia ecológica** Más bien miremos cada país específico:
+
+```{r}
+surv_income2 <- gapminder%>%
+  filter(year %in% 1970 &!is.na(gdp) & !is.na(infant_mortality) & !is.na(country))%>%
+  group_by(country)%>%
+  summarize(income = sum(gdp)/sum(population)/365,
+                         infant_survival_rate = 1-sum(infant_mortality/1000*population)/sum(population),
+            region= groups)
+
+```
+
+```{r}
+surv_income2%>%arrange(infant_survival_rate)%>% 
+  ggplot(aes(income, infant_survival_rate, label=region, color=region))+
+  scale_x_continuous(trans = "log2", limit = c(0.25, 150))+
+  scale_y_continuous(trans = "logit", limit = c(0.85, 0.99), breaks = c(0.85, 0.9, .95, .99, .995, .999))+
+  geom_point(size = 3)
+```
+
+Ahora quiero hacer el gráfico de arriba pero con varios paises mostrando el nombre de colombia.
+
+```{r}
+colombia <- surv_income2%>%filter(country %in% c("Colombia", "Chile", "Mexico", "Argentina", "Sierra Leone", "Ecuador", "Senegal", "Sudan"))
+
+surv_income2%>%arrange(infant_survival_rate)%>% 
+  ggplot(aes(income, infant_survival_rate, color=region))+
+  scale_x_continuous(trans = "log2", limit = c(0.25, 150))+
+  scale_y_continuous(trans = "logit", limit = c(0.85, 0.99), breaks = c(0.85, 0.9, .95, .99, .995, .999))+
+  
+  geom_text_repel(data= colombia, aes(income, infant_survival_rate, label=country, color = region))+
+  geom_point(size = 4, alpha = 0.5)
+
+```
+
+## PRINCIPIOS DE VISUALIZACIÓN
+
+Lo siguiente está basado en la conferencia de Karl Broman llamada "Creando tablas y figuras efectivas" Estos principios se basan en principios acerca de cómo el ser humano detecta patrones y hace comparaciones visuales.
+También se debe tener en cuenta la meta que se tiene a la hora de presentar un gráfico.
+Finalmente, es necesario adaptar el resultado a las características de la audiencia.
+
+### principios para codificar datos.
+
+Los principios más importantes son los siguientes: 1.
+Privilegiar las barras y las distancias, sobre las áreas y los ángulos.
+2.
+Cuando se usan gráficos de barra, siempre se debe incluir el 0.
+Cuando se grafican posiciones, no es tan necesario.
+3.
+Se debe asegurar que las visualizaciones codifiquen las cantidades adecuadas (es engañoso cuando se grafican áreas o volúmenes) 4.
+Se deben ordenar los gráficos por variables significativas, y no alfabéticamente.
+5.
+Mostrar los datos.
+Algunos gráficos son mejores que otros para transmitir mayor información.
+Por ejemplo, los gráficos de barra para mostrar distribuciones son sumamento inadecuados, mientras los de puntos o los boxplot son más apropiados.
+Para mejorar cuando los puntos se aproximan, se puede agregar un poco de "jitter" y configurar el alpha.
+6.
+Cuando se comparen datos a través de varios plots es necesario mantener los ejes con el mismo tamaño.
+7.
+Alinear los gráficos verticalmente para mostrar diferencias horizontales, y horizontalmente para mostrar diferencias verticales.
+8.
+Considerar transformaciones como las log y las logit.
+9.
+Cuando dos grupos se deben comparar, es óptimo ubicarlos uno al lado del otro.
+10.
+Es óptimo colorear los grupos con colores diferentes.
+11.
+Es importante considerar paletas de colores amigables con personas que no reconocen colores.
+12.
+Ordenar de manera significativa facilita la comparación.
+13.
+Para hacer comparaciones entre dos variables en dos o tres momentos específicos de tiempo se pueden usar gráficos de altura.
+14.
+Cuando queremos mostrar las diferencias en medias para dos periodos diferentes de tiempo, podemos usar el bland altman plot, el cual muestra en el eje x la media, y en el eje y la diferencia.
+15.
+Para codificar una tercera o cuarta variable, podemos usar las formas, los tamaños, los colores o las intensidades.
+16.
+Evitar gráficos pseudo tridimensionales.
+17.
+Evitar el exceso de dígitos.
+18.
+En tablas: poner los números que se están comparando en columnas, y no en filas.
+### práctica con vacunas ¿Qué tanto han disminuído las enfermedades después de introducida alguna vacuna?
+aquí lo vamos a ver:
+
+```{r}
+data(us_contagious_diseases)
+
+```
+
+empecemos por seleccionar el sarampion.
+Crearemos un objeto de nombre dat, que incluya al sarampión y las tasas de contagio por cada 100000 habitantes, ordene los estados por el valor promedio de la envermedad y mueva a Alaska y Hawai, pues solo entraron a us después de los 50
+
+```{r}
+dat <- us_contagious_diseases%>%filter(!state%in% c("Alaska", "Hawaii") & disease == "Measles") %>% mutate(rate = count/population*10^5)%>%mutate(state=reorder(state, rate))
+```
+
+Ahora, miremos los datos de la enfermedad, a lo largo del tiempo, para un estado.
+Introducimos la línea en 1962, que es cuando se creó la vacuna.
+
+```{r}
+estado <- "California"
+dat %>% filter(state %in% estado)%>%ggplot(aes(year, rate))+
+  geom_line()+
+  geom_vline(xintercept = 1962, color = "grey")+
+  geom_label(x=1965, y = 1250, label="Introducción de la vacuna", color = "grey")
+
+```
+
+Ahora vamos a mostrar los datos para todos los estados en un solo plot, tenemos tres variables para mostrar: year, state y rate
+
+```{r}
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile()
+```
+
+Este color no dice mucho, por lo que vamos a cambiarlo.
+En primer lugar le pondré divisiones a cada baldosa:
+
+```{r}
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile(color = "grey50")
+```
+
+Después le cambiaré el gradiente del color:
+
+```{r}
+library(RColorBrewer)
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile(color = "grey50")+
+  scale_fill_gradientn(colors = brewer.pal(9,"Reds"), trans="sqrt")
+```
+
+Ahora voy a expandir el eje x:
+
+```{r}
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile(color = "grey50")+
+  scale_fill_gradientn(colors = brewer.pal(9,"Reds"), trans="sqrt")+
+  scale_x_continuous(expand = c(0,0))
+```
+
+Ahora agregaré la línea vertical:
+
+```{r}
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile(color = "grey50")+
+  scale_fill_gradientn(colors = brewer.pal(9,"Reds"), trans="sqrt")+
+  scale_x_continuous(expand = c(0,0))+
+  geom_vline(xintercept = 1963, color="blue")
+```
+
+Ahora le voy a poner algunos temas:
+
+```{r}
+dat%>% ggplot(aes(year, state, fill=rate))+
+  geom_tile(color = "grey50")+
+  scale_fill_gradientn(colors = brewer.pal(9,"Blues"), trans="sqrt")+
+  scale_x_continuous(expand = c(0,0))+
+  geom_vline(xintercept = 1963, color="black")+
+  theme_minimal()+
+  theme(panel.grid = element_blank())+
+  labs(x="Año", y = "Estado", title = "Evolución del Sarampión entre 1940 y 2000", caption = "Tasa de Sarampión por 100.000 habitantes. La línea muestra el momento de la introducción de la vacuna", fill ="Contagios")
+  
+
+```
